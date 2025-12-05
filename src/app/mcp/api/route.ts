@@ -17,29 +17,32 @@
 // !!!START
 
 import genkitEndpoint from "@/lib/genkit-endpoint";
-import { genkit, ToolAction } from "genkit/beta";
-import { googleAI } from "@genkit-ai/googleai";
-import { mcpClient } from "genkitx-mcp";
-
-const firebaseMcp = mcpClient({
-  name: "firebase",
-  serverProcess: {
-    command: "firebase",
-    args: ["experimental:mcp"],
-  },
-});
+import { genkit } from "genkit/beta";
+import { googleAI } from "@genkit-ai/google-genai";
+import { defineMcpClient, GenkitMcpClient } from "@genkit-ai/mcp";
 
 const ai = genkit({
-  plugins: [googleAI(), firebaseMcp], // set the GOOGLE_API_KEY env variable
-  model: googleAI.model("gemini-2.0-flash"),
+  plugins: [googleAI()], // set the GOOGLE_API_KEY env variable
+  model: googleAI.model("gemini-2.5-flash"),
 });
 
+let firebaseMcp: GenkitMcpClient;
+
 export const POST = genkitEndpoint(async ({ system, messages, prompt }) => {
-  const tools: ToolAction[] = [];
-  const actions = await ai.registry.listActions();
-  for (const key in actions) {
-    if (key.startsWith("/tool/")) tools.push(actions[key] as ToolAction);
+  if (!firebaseMcp) {
+    firebaseMcp = defineMcpClient(ai, {
+      name: "firebase",
+      mcpServer: {
+        command: "firebase",
+        args: ["experimental:mcp"],
+      },
+    });
   }
-  const chat = ai.chat({ system, messages, tools });
+
+  const chat = ai.chat({
+    system,
+    messages,
+    tools: await firebaseMcp.getActiveTools(ai),
+  });
   return chat.sendStream({ prompt });
 });

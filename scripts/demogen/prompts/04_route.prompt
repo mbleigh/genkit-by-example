@@ -8,12 +8,12 @@ If the demo involves a chatbot, use the `ai.chat` feature of Genkit and structur
 
 ```ts
 import { genkit } from "genkit/beta";
-import { googleAI } from "@genkit-ai/googleai";
+import { googleAI } from "@genkit-ai/google-genai";
 import genkitEndpoint from "@/lib/genkit-endpoint";
 
 const ai = genkit({
   plugins: [googleAI()],
-  model: googleAI.model('gemini-2.0-flash'),
+  model: googleAI.model('gemini-2.5-flash'),
 });
 
 export const POST = genkitEndpoint(({ system, messages, prompt }) => {
@@ -26,13 +26,13 @@ Whereas for something that is doing more of a single generation it might look li
 
 ```
 import { genkit, z } from "genkit";
-import { googleAI } from "@genkit-ai/googleai";
+import { googleAI } from "@genkit-ai/google-genai";
 import genkitEndpoint from "@/lib/genkit-endpoint";
 import { CharacterSheetSchema } from "../schema";
 
 const ai = genkit({
   plugins: [googleAI()],
-  model: googleAI.model('gemini-2.0-flash'),
+  model: googleAI.model('gemini-2.5-flash'),
 });
 
 export const POST = genkitEndpoint({ schema: z.object({ prompt: z.string() }) }, ({ prompt }) =>
